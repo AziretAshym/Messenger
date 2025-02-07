@@ -4,6 +4,7 @@ import expressWs from 'express-ws';
 import config from "./config";
 import * as mongoose from "mongoose";
 import MongoDb from "./mongoDb";
+import usersRouter from "./routers/users";
 
 const app = express();
 expressWs(app);
@@ -13,6 +14,9 @@ const port = 8000;
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
+
+app.use('/users', usersRouter);
+
 
 
 const run = async () => {

@@ -1,9 +1,17 @@
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
-import { FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE, persistStore } from 'redux-persist';
+import { persistReducer, FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE, persistStore } from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
+import { usersReducer } from '../features/users/usersSlice.ts';
 
+
+const usersPersistConfig = {
+  key: 'store:users',
+  storage,
+  whitelist: ['user'],
+};
 
 const rootReducer = combineReducers({
-
+  users: persistReducer(usersPersistConfig, usersReducer),
 })
 
 
