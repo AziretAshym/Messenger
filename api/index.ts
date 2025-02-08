@@ -22,10 +22,35 @@ const router = express.Router();
 
 const connectedClients: WebSocket[] = [];
 
+interface IncomingValues{
+  user:string,
+  text:string
+}
+
+interface IncomingMessage{
+  type: string;
+  payload:IncomingValues
+}
+
+
 router.ws('/messages', async (ws, _req) => {
   connectedClients.push(ws);
 
   try {
+    ws.on("message", async (message) => {
+      const decodeMessage = JSON.parse(message.toString()) as IncomingMessage
+      if(decodeMessage.type === "ADD_NEW_MESSAGE"){
+        const newMessage =  new Message({
+          user: decodeMessage.payload.user,
+          text: decodeMessage.payload.text,
+          date: new Date().toISOString(),
+        });
+        await newMessage.save();
+        const messages = await Message.find().sort({datetime: -1}).limit(30).populate("user", "username");
+        ws.send(JSON.stringify( {type: "ALL_MESSAGES", payload: messages}));
+      }
+    });
+
     const messages = await Message.find().sort({datetime: -1}).limit(30).populate("user", "username");
     ws.send(JSON.stringify( {type: "ALL_MESSAGES", payload: messages}));
   } catch (e) {

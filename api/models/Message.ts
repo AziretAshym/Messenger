@@ -14,7 +14,7 @@ const MessageSchema = new Schema({
   },
   datetime:{
     type: Date,
-    default: new Date().toISOString(),
+    default:()=> new Date().toISOString(),
     required: true,
   }
 
