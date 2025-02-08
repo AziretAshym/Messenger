@@ -27,7 +27,7 @@ router.ws('/messages', async (ws, _req) => {
 
   try {
     const messages = await Message.find().sort({datetime: -1}).limit(30).populate("user", "username");
-    ws.send(JSON.stringify(messages));
+    ws.send(JSON.stringify( {type: "ALL_MESSAGES", payload: messages}));
   } catch (e) {
     ws.send(JSON.stringify({error: "Not found messages"}));
   }

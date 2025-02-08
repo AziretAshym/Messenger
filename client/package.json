@@ -20,6 +20,7 @@
     "@react-oauth/google": "^0.12.1",
     "@reduxjs/toolkit": "^2.5.1",
     "axios": "^1.7.9",
+    "dayjs": "^1.11.13",
     "mui": "^0.0.1",
     "prettier": "^3.4.2",
     "react": "^19.0.0",
