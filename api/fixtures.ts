@@ -20,13 +20,17 @@ const run = async () => {
       username: "Martin",
       password: "123",
       token: crypto.randomUUID(),
-      displayName: "Martin"
+      displayName: "Martin",
+      avatar: 'fixtures/Martin.webp',
+      role: 'admin'
     },
     {
       username: "Lazlo",
       password: "123",
       token: crypto.randomUUID(),
-      displayName: "Lazlo"
+      displayName: "Lazlo",
+      avatar: 'fixtures/Lazlo.png',
+      role: 'user'
     }
   )
 

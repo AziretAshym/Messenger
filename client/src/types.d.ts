@@ -4,7 +4,6 @@ export interface User {
   token: string;
   role: 'admin' | 'user';
   displayName: string;
-  googleID: string;
   avatar: string;
 }
 

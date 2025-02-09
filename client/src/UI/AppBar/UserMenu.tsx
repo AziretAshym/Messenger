@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {Avatar, Button, Menu, MenuItem} from '@mui/material';
+import { Avatar, Button, Menu, MenuItem } from '@mui/material';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { logout } from '../../features/users/usersThunks';
 import { useNavigate } from 'react-router-dom';
@@ -39,10 +39,8 @@ const UserMenu = () => {
           </Typography>
         )}
         <Button onClick={handleClick} color="inherit">
-          {user && user.googleID ?
-            <Avatar alt={user.displayName} src={user.avatar}/> :
-            <Avatar alt={user?.displayName} src={apiUrl + '/' + user?.avatar} />
-          }
+            <Avatar alt={user?.displayName}
+                    src={user?.avatar?.startsWith('http') ? user.avatar : `${apiUrl}/${user?.avatar}`}/>
         </Button>
       </Box>
       <Menu open={isOpen} anchorEl={anchorEl} onClose={handleClose} keepMounted>
