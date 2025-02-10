@@ -105,9 +105,25 @@ router.ws('/messages', async (ws, _req) => {
 
         allMessages(messages);
       }
+      else if (decoded.type === 'DELETE_MESSAGE' && currentUser) {
+        const user = await User.findById(currentUser.userId);
+        if (user?.role !== 'admin') {
+          sendErrorMessage('You cannot delete messages!');
+          return;
+        }
+
+        await Message.deleteOne({ _id: decoded.payload.messageId });
+        const messages = await Message.find()
+          .sort({ datetime: -1 })
+          .limit(30)
+          .populate("user", "username displayName avatar");
+
+        allMessages(messages);
+      }
     } catch (e) {
       sendErrorMessage('Invalid message format');
     }
+
   });
 
   ws.on('close', () => {

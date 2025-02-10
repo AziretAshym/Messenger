@@ -4,7 +4,7 @@ export interface UserFields {
     username: string;
     password: string;
     token: string;
-    role: string;
+    role: 'user' | 'admin';
     displayName: string;
     googleID: string;
     avatar: string;
