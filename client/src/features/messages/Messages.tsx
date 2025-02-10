@@ -14,6 +14,7 @@ interface Message {
     _id: string;
     username: string;
     displayName: string;
+    role: string;
     avatar?: string;
   };
   text: string;
@@ -95,6 +96,14 @@ const Messages = () => {
     setText("");
   };
 
+  const handleDeleteMessage = (messageId: string) => {
+    if (!user || !ws.current) return;
+
+    ws.current.send(JSON.stringify({
+      type: 'DELETE_MESSAGE',
+      payload: { messageId }
+    }));
+  };
   return (
     <Grid container sx={{ height: "100vh" }}>
       <Grid>
@@ -127,9 +136,23 @@ const Messages = () => {
                 whiteSpace: "pre-wrap",
               }}
             >
-              <Typography sx={{ color: "#1b5e20", fontSize: "18px", fontWeight: "bold" }}>
-                {message.user.username}
-              </Typography>
+              <Box sx={{display: "flex", alignItems: "center", justifyContent: "space-between"}}>
+                <Typography sx={{ color: "#1b5e20", fontSize: "18px", fontWeight: "bold" }}>
+                  {message.user.username}
+                </Typography>
+                {user?.role === 'admin' && (
+                  <Button
+                    sx={{
+                      margin: 0,
+                      padding: 0
+                    }}
+                    color="error"
+                    onClick={() => handleDeleteMessage(message._id)}
+                  >
+                    Delete
+                  </Button>
+                )}
+              </Box>
               <Typography sx={{ color: "#212121", fontSize: "18px" }}>
                 {message.text}
               </Typography>
