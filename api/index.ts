@@ -7,6 +7,7 @@ import MongoDb from "./mongoDb";
 import usersRouter from "./routers/users";
 import {WebSocket} from 'ws';
 import Message from './models/Message';
+import User from './models/User';
 
 const app = express();
 expressWs(app);
@@ -20,63 +21,149 @@ app.use('/users', usersRouter);
 
 const router = express.Router();
 
-const connectedClients: WebSocket[] = [];
-
-interface IncomingValues{
-  user:string,
-  text:string
+interface OnlineUser {
+  userId: string;
+  ws: WebSocket;
+  username: string;
+  displayName: string;
+  avatar?: string;
 }
 
-interface IncomingMessage{
-  type: string;
-  payload:IncomingValues
-}
-
+const onlineUsers: OnlineUser[] = [];
 
 router.ws('/messages', async (ws, _req) => {
-  connectedClients.push(ws);
+  let currentUser: OnlineUser | null = null;
 
-  try {
-    ws.on("message", async (message) => {
-      const decodeMessage = JSON.parse(message.toString()) as IncomingMessage
-      if(decodeMessage.type === "ADD_NEW_MESSAGE"){
-        const newMessage =  new Message({
-          user: decodeMessage.payload.user,
-          text: decodeMessage.payload.text,
-          date: new Date().toISOString(),
-        });
-        await newMessage.save();
-        const messages = await Message.find().sort({datetime: -1}).limit(30).populate("user", "username");
-        ws.send(JSON.stringify( {type: "ALL_MESSAGES", payload: messages}));
+  const sendErrorMessage = (message: string) => {
+    if (ws.readyState === 1) {
+      ws.send(JSON.stringify({ type: 'ERROR', payload: { message } }));
+    }
+  };
+
+  const handleAuth = async (token: string) => {
+    try {
+      const user = await User.findOne({ token }).select('-password');
+      if (!user) {
+        sendErrorMessage('Invalid token');
+        return ws.close();
       }
-    });
 
-    const messages = await Message.find().sort({datetime: -1}).limit(30).populate("user", "username");
-    ws.send(JSON.stringify( {type: "ALL_MESSAGES", payload: messages}));
-  } catch (e) {
-    ws.send(JSON.stringify({error: "Not found messages"}));
-  }
+      currentUser = {
+        userId: user._id.toString(),
+        ws,
+        username: user.username,
+        displayName: user.displayName,
+        avatar: user.avatar
+      };
+
+      onlineUsers.push(currentUser);
+      onlineUsersList();
+      await sendMessages();
+    } catch (e) {
+      sendErrorMessage('Authentication failed');
+      ws.close();
+    }
+  };
+
+  const sendMessages = async () => {
+    try {
+      const messages = await Message.find()
+        .sort({ datetime: -1 })
+        .limit(30)
+        .populate("user", "username displayName avatar");
+
+      if (ws.readyState === 1) {
+        ws.send(JSON.stringify({
+          type: "ALL_MESSAGES",
+          payload: messages
+        }));
+      }
+    } catch (e) {
+      sendErrorMessage('Failed to load messages');
+    }
+  };
+
+  ws.on('message', async (message) => {
+    try {
+      const decoded = JSON.parse(message.toString());
+
+      if (decoded.type === 'LOGIN' && decoded.payload?.token) {
+        await handleAuth(decoded.payload.token);
+      }
+      else if (decoded.type === 'ADD_NEW_MESSAGE' && currentUser) {
+        const newMessage = new Message({
+          user: currentUser.userId,
+          text: decoded.payload.text,
+          datetime: new Date(),
+        });
+
+        await newMessage.save();
+        const messages = await Message.find()
+          .sort({ datetime: -1 })
+          .limit(30)
+          .populate("user", "username displayName avatar");
+
+        allMessages(messages);
+      }
+    } catch (e) {
+      sendErrorMessage('Invalid message format');
+    }
+  });
 
   ws.on('close', () => {
-    const index = connectedClients.indexOf(ws);
-    connectedClients.splice(index, 1);
-  })
-})
+    if (currentUser) {
+      const index = onlineUsers.findIndex(u => u.userId === currentUser!.userId);
+      if (index !== -1) {
+        onlineUsers.splice(index, 1);
+        onlineUsersList();
+      }
+    }
+  });
+
+  const allMessages = (messages: any[]) => {
+    onlineUsers.forEach(user => {
+      if (user.ws.readyState === 1) {
+        user.ws.send(JSON.stringify({
+          type: 'ALL_MESSAGES',
+          payload: messages
+        }));
+      }
+    });
+  };
+
+  const onlineUsersList = () => {
+    const usersList = onlineUsers.map(user => ({
+      userId: user.userId,
+      username: user.username,
+      displayName: user.displayName,
+      avatar: user.avatar
+    }));
+
+    onlineUsers.forEach(user => {
+      if (user.ws.readyState === 1) {
+        user.ws.send(JSON.stringify({
+          type: 'ONLINE_USERS',
+          payload: usersList
+        }));
+      }
+    });
+  };
+});
 
 app.use(router);
 
 const run = async () => {
-    try {
-        await mongoose.connect(config.db);
-        app.listen(port, () => {
-            console.log(`Server started on port http://localhost:${port}`);
-        });
-        process.on('exit', () => {
-            MongoDb.disconnect();
-        })
-    } catch (e){
-        console.error(e);
-    }
+  try {
+    await mongoose.connect(config.db);
+    app.listen(port, () => {
+      console.log(`Server started on port http://localhost:${port}`);
+    });
+    process.on('exit', () => {
+      MongoDb.disconnect();
+    });
+  } catch (e) {
+    console.error(e);
+  }
 };
 
 run().catch((e) => console.error(e));
