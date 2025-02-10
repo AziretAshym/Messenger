@@ -25,7 +25,7 @@ const Login = () => {
   const submitFormHandler = async (event: React.FormEvent) => {
     event.preventDefault();
     await dispatch(login(state)).unwrap();
-    navigate('/');
+    navigate('/messages');
   };
 
   return (

@@ -4,7 +4,7 @@ import { Route, Routes } from 'react-router-dom';
 import Register from './features/users/Register.tsx';
 import Typography from '@mui/material/Typography';
 import Login from './features/users/Login.tsx';
-import Messages from './features/messages/messages.tsx';
+import Messages from './features/messages/Messages.tsx';
 
 const App = () => {
   return (
@@ -14,7 +14,8 @@ const App = () => {
       </header>
       <Container maxWidth="xl" component="main">
         <Routes>
-          <Route path="/" element={<Messages/>}/>
+          <Route path="/" element={<Register/>}/>
+          <Route path="/messages" element={<Messages/>}/>
           <Route path="/register" element={<Register/>}/>
           <Route path="/login" element={<Login/>}/>
           <Route path="*" element={<Typography variant="h1">Page Doesn't Exist</Typography>}/>

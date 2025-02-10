@@ -32,7 +32,7 @@ const AppToolBar = () => {
           <Grid2 sx={{ display: 'flex', alignItems: 'center' }}>
             <ChatBubbleOutline fontSize="large" sx={{ color: '#FFFFFF', mr: 1 }} />
             <Typography variant="h6" sx={{ color: '#FFFFFF', fontWeight: 600 }}>
-              <StyledLink to="/">Chat</StyledLink>
+              <StyledLink to="/messages">Chat</StyledLink>
             </Typography>
           </Grid2>
         </Grid2>

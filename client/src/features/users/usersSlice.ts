@@ -1,10 +1,11 @@
-import {createSlice} from '@reduxjs/toolkit';
-import {GlobalError, User, ValidationError} from '../../types';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { GlobalError, OnlineUser, User, ValidationError } from '../../types';
 import {googleLogin, login, register} from './usersThunks';
 
 
 interface UsersState {
   user: User | null;
+  onlineUsers: OnlineUser[];
   registerLoading: boolean;
   registerError: ValidationError | null;
   loginError: GlobalError | null;
@@ -13,6 +14,7 @@ interface UsersState {
 
 const initialState: UsersState = {
   user: null,
+  onlineUsers: [],
   registerError: null,
   registerLoading: false,
   loginError: null,
@@ -25,6 +27,9 @@ export const usersSlice = createSlice({
   reducers: {
     unsetUser: (state) => {
       state.user = null;
+    },
+    setOnlineUsers: (state, action: PayloadAction<OnlineUser[]>) => {
+      state.onlineUsers = action.payload;
     }
   },
   extraReducers: (builder) => {
@@ -68,6 +73,7 @@ export const usersSlice = createSlice({
   },
   selectors: {
     selectUser: (state) => state.user,
+    selectOnlineUsers: (state) => state.onlineUsers,
     selectRegisterLoading: (state) => state.registerLoading,
     selectRegisterError: (state) => state.registerError,
     selectLoginLoading: (state) => state.loginLoading,
@@ -75,12 +81,13 @@ export const usersSlice = createSlice({
   },
 });
 
-export const usersReducer = usersSlice.reducer;
-export const {unsetUser} = usersSlice.actions;
+export const { unsetUser, setOnlineUsers } = usersSlice.actions;
 export const {
   selectUser,
+  selectOnlineUsers,
   selectRegisterLoading,
   selectRegisterError,
-  selectLoginLoading,
-  selectLoginError,
+  selectLoginError
 } = usersSlice.selectors;
+
+export const usersReducer = usersSlice.reducer;

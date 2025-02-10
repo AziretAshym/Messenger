@@ -7,6 +7,14 @@ export interface User {
   avatar: string;
 }
 
+export interface OnlineUser {
+  userId: string;
+  username: string;
+  displayName: string;
+  role: string;
+  avatar?: string;
+}
+
 export interface RegisterMutation {
   username: string;
   password: string;
